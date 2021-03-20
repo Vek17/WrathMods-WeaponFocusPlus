@@ -11,6 +11,7 @@ namespace WeaponFocusPlus {
         static bool Load(UnityModManager.ModEntry modEntry) {
             var harmony = new Harmony(modEntry.Info.Id);
             Mod = modEntry;
+            WeaponFocusPlus.LoadWeaponGroups();
             harmony.PatchAll();
             Main.Log("DEBUG LOGGING ENABLED");
             return true;

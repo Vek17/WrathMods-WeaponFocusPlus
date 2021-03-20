@@ -1,123 +1,84 @@
 ﻿using System;
+using UnityModManagerNet;
 using HarmonyLib;
 using Kingmaker.Blueprints.Classes.Selection;
 using Kingmaker.Enums;
 using Kingmaker.Blueprints.Items.Weapons;
 using Kingmaker.Items;
 using Kingmaker.UI.Common;
+using Kingmaker.Blueprints.Root.Strings;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
-using Kingmaker.Blueprints.Root.Strings;
+using System.IO;
+
 
 namespace WeaponFocusPlus {
 
     public static class WeaponFocusPlus {
+        public static bool Loaded = false;
 
-        static WeaponCategory[] Axes = {
-            //WeaponCategory.Bardiche,
-            WeaponCategory.Battleaxe,
-            //WeaponCategory.DoubleAxe,
-            WeaponCategory.DwarvenWaraxe,
-            WeaponCategory.Greataxe,
-            WeaponCategory.Handaxe,
-            WeaponCategory.HeavyPick,
-            WeaponCategory.LightPick,
-            WeaponCategory.Tongi
-            //WeaponCategory.ThrowingAxe
-        };
-        static WeaponCategory[] Bows = {
-            WeaponCategory.Shortbow,
-            WeaponCategory.Longbow
-        };
-        static WeaponCategory[] Close = {
-            WeaponCategory.PunchingDagger,
-            WeaponCategory.SpikedHeavyShield,
-            WeaponCategory.SpikedLightShield,
-            //WeaponCategory.UnarmedStrike,
-            WeaponCategory.WeaponHeavyShield,
-            WeaponCategory.WeaponLightShield
-        };
-        static WeaponCategory[] Crossbows = {
-            WeaponCategory.HandCrossbow,
-            WeaponCategory.HeavyCrossbow,
-            WeaponCategory.HeavyRepeatingCrossbow,
-            WeaponCategory.LightCrossbow,
-            WeaponCategory.LightRepeatingCrossbow
-        };
-        static WeaponCategory[] Double = {
-            WeaponCategory.DoubleAxe,
-            WeaponCategory.DoubleSword,
-            WeaponCategory.HookedHammer,
-            //WeaponCategory.Quarterstaff,
-            WeaponCategory.Urgrosh
-        };
-        static WeaponCategory[] HammersMacesFlails = {
-            WeaponCategory.Club,
-            WeaponCategory.EarthBreaker,
-            WeaponCategory.Flail,
-            WeaponCategory.Greatclub,
-            WeaponCategory.HeavyFlail,
-            WeaponCategory.HeavyMace,
-            WeaponCategory.LightHammer,
-            WeaponCategory.LightMace,
-            WeaponCategory.Warhammer
-        };
-        static WeaponCategory[] HeavyBlades = {
-            WeaponCategory.BastardSword,
-            //WeaponCategory.DoubleSword,
-            WeaponCategory.DuelingSword,
-            WeaponCategory.ElvenCurvedBlade,
-            WeaponCategory.Estoc,
-            WeaponCategory.Falcata,
-            WeaponCategory.Falchion,
-            WeaponCategory.Greatsword,
-            WeaponCategory.Longsword,
-            WeaponCategory.Scimitar,
-            WeaponCategory.Scythe
-        };
-        static WeaponCategory[] LightBlades = {
-            WeaponCategory.Dagger,
-            WeaponCategory.Kukri,
-            WeaponCategory.Rapier,
-            WeaponCategory.Shortsword,
-            WeaponCategory.Sickle,
-            WeaponCategory.Starknife
-        };
-        static WeaponCategory[] Monk = {
-            WeaponCategory.Kama,
-            WeaponCategory.Nunchaku,
-            WeaponCategory.Quarterstaff,
-            WeaponCategory.Sai,
-            WeaponCategory.Shuriken,
-            WeaponCategory.Siangham
-        };
-        static WeaponCategory[] Natural = {
-            WeaponCategory.Claw,
-            WeaponCategory.Bite,
-            WeaponCategory.Gore,
-            WeaponCategory.Tail,
-            WeaponCategory.UnarmedStrike
-        };
-        static WeaponCategory[] Polearms = {
-            WeaponCategory.Bardiche,
-            WeaponCategory.Fauchard,
-            WeaponCategory.Glaive
-        };
-        static WeaponCategory[] Spears = {
-            //WeaponCategory.Javelin,
-            WeaponCategory.Longspear,
-            WeaponCategory.Shortspear,
-            WeaponCategory.Spear,
-            WeaponCategory.Trident
-        };
-        static WeaponCategory[] Thrown = {
-            WeaponCategory.Bomb,
-            WeaponCategory.Dart,
-            WeaponCategory.Javelin,
-            WeaponCategory.Sling,
-            WeaponCategory.SlingStaff,
-            WeaponCategory.ThrowingAxe
-        };
+        static WeaponCategory[] Axes;
+        static WeaponCategory[] Bows;
+        static WeaponCategory[] Close;
+        static WeaponCategory[] Crossbows;
+        static WeaponCategory[] Double;
+        static WeaponCategory[] Hammers;
+        static WeaponCategory[] HeavyBlades;
+        static WeaponCategory[] LightBlades;
+        static WeaponCategory[] Monk;
+        static WeaponCategory[] Natural;
+        static WeaponCategory[] Polearms;
+        static WeaponCategory[] Spears;
+        static WeaponCategory[] Thrown;
+
+        public static void LoadWeaponGroups() {
+            using (StreamReader streamReader = File.OpenText(UnityModManager.modsPath + "/WeaponFocusPlus/groups.json")) {
+                //using (JsonTextReader jsonTextReader = new JsonTextReader(streamReader)) {
+                JObject groups = JObject.Parse(streamReader.ReadToEnd());
+                Axes = groups["Axes"]
+                    .Where(v =>  Enum.TryParse<WeaponCategory>((string)v, out WeaponCategory _))
+                    .Select(v => (WeaponCategory)Enum.Parse(typeof(WeaponCategory), (string)v, true)).ToArray();
+                Bows = groups["Bows"]
+                    .Where(v => Enum.TryParse<WeaponCategory>((string)v, out WeaponCategory _))
+                    .Select(v => (WeaponCategory)Enum.Parse(typeof(WeaponCategory), (string)v, true)).ToArray();
+                Close = groups["Close"]
+                    .Where(v => Enum.TryParse<WeaponCategory>((string)v, out WeaponCategory _))
+                    .Select(v => (WeaponCategory)Enum.Parse(typeof(WeaponCategory), (string)v, true)).ToArray();
+                Crossbows = groups["Crossbows"]
+                    .Where(v => Enum.TryParse<WeaponCategory>((string)v, out WeaponCategory _))
+                    .Select(v => (WeaponCategory)Enum.Parse(typeof(WeaponCategory), (string)v, true)).ToArray();
+                Double = groups["Double"]
+                    .Where(v => Enum.TryParse<WeaponCategory>((string)v, out WeaponCategory _))
+                    .Select(v => (WeaponCategory)Enum.Parse(typeof(WeaponCategory), (string)v, true)).ToArray();
+                Hammers = groups["Hammers"]
+                    .Where(v => Enum.TryParse<WeaponCategory>((string)v, out WeaponCategory _))
+                    .Select(v => (WeaponCategory)Enum.Parse(typeof(WeaponCategory), (string)v, true)).ToArray();
+                HeavyBlades = groups["HeavyBlades"]
+                    .Where(v => Enum.TryParse<WeaponCategory>((string)v, out WeaponCategory _))
+                    .Select(v => (WeaponCategory)Enum.Parse(typeof(WeaponCategory), (string)v, true)).ToArray();
+                LightBlades = groups["LightBlades"]
+                    .Where(v => Enum.TryParse<WeaponCategory>((string)v, out WeaponCategory _))
+                    .Select(v => (WeaponCategory)Enum.Parse(typeof(WeaponCategory), (string)v, true)).ToArray();
+                Monk = groups["Monk"]
+                    .Where(v => Enum.TryParse<WeaponCategory>((string)v, out WeaponCategory _))
+                    .Select(v => (WeaponCategory)Enum.Parse(typeof(WeaponCategory), (string)v, true)).ToArray();
+                Natural = groups["Natural"]
+                    .Where(v => Enum.TryParse<WeaponCategory>((string)v, out WeaponCategory _))
+                    .Select(v => (WeaponCategory)Enum.Parse(typeof(WeaponCategory), (string)v, true)).ToArray();
+                Polearms = groups["Polearms"]
+                    .Where(v => Enum.TryParse<WeaponCategory>((string)v, out WeaponCategory _))
+                    .Select(v => (WeaponCategory)Enum.Parse(typeof(WeaponCategory), (string)v, true)).ToArray();
+                Spears = groups["Spears"]
+                    .Where(v => Enum.TryParse<WeaponCategory>((string)v, out WeaponCategory _))
+                    .Select(v => (WeaponCategory)Enum.Parse(typeof(WeaponCategory), (string)v, true)).ToArray();
+                Thrown = groups["Thrown"]
+                    .Where(v => Enum.TryParse<WeaponCategory>((string)v, out WeaponCategory _))
+                    .Select(v => (WeaponCategory)Enum.Parse(typeof(WeaponCategory), (string)v, true)).ToArray();
+                //}
+            }
+            Loaded = true;
+        }
 
         internal static WeaponFighterGroup[] GetWeaponGroups(WeaponCategory weaponCategory) {
             List<WeaponFighterGroup> groups = new List<WeaponFighterGroup>();
@@ -137,7 +98,7 @@ namespace WeaponFocusPlus {
             if (Array.Exists(Double, t => t == weaponCategory)) {
                 groups.Add(WeaponFighterGroup.Double);
             }
-            if (Array.Exists(HammersMacesFlails, t => t == weaponCategory)) {
+            if (Array.Exists(Hammers, t => t == weaponCategory)) {
                 groups.Add(WeaponFighterGroup.Hammers);
             }
             if (Array.Exists(HeavyBlades, t => t == weaponCategory)) {
