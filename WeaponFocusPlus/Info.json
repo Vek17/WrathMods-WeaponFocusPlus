@@ -1,0 +1,12 @@
+﻿{
+  "Id": "WeaponFocusPlus",
+  "DisplayName": "Weapon Focus Plus",
+  "Author": "xoff",
+  "Version": "1.0.0",
+  "ManagerVersion": "0.23.0.0",
+  "GameVersion": "0.5.2i",
+  "Requirements": [],
+  "AssemblyName": "WeaponFocusPlus.dll",
+  "HomePage": "https://www.nexusmods.com/pathfinderwrathoftherighteous/mods/7",
+  "EntryMethod": "WeaponFocusPlus.Main.Load"
+}
