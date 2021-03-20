@@ -1,5 +1,4 @@
 ﻿using System;
-using UnityEngine;
 using HarmonyLib;
 using Kingmaker.Blueprints.Classes.Selection;
 using Kingmaker.Enums;
@@ -8,11 +7,6 @@ using Kingmaker.Items;
 using Kingmaker.UI.Common;
 using System.Collections.Generic;
 using System.Linq;
-using Kingmaker.Blueprints;
-using Kingmaker.Blueprints.Classes;
-using Kingmaker.Designers.Mechanics.Facts;
-using Kingmaker.Localization;
-using Kingmaker.Blueprints.Root;
 using Kingmaker.Blueprints.Root.Strings;
 
 namespace WeaponFocusPlus {
@@ -125,7 +119,6 @@ namespace WeaponFocusPlus {
             WeaponCategory.ThrowingAxe
         };
 
-
         internal static WeaponFighterGroup[] GetWeaponGroups(WeaponCategory weaponCategory) {
             List<WeaponFighterGroup> groups = new List<WeaponFighterGroup>();
 
@@ -173,6 +166,7 @@ namespace WeaponFocusPlus {
             }
             return groups.ToArray();
         }
+
         internal static string[] GenerateWeaponTypeStrings(WeaponFighterGroup[] weaponGroups) {
             List<string> text = new List<string>();
 
@@ -183,7 +177,7 @@ namespace WeaponFocusPlus {
                 text.Add("Bows");
             }
             if (Array.Exists(weaponGroups, t => t == WeaponFighterGroup.Close)) {
-                text.Add("Closs");
+                text.Add("Close");
             }
             if (Array.Exists(weaponGroups, t => t == WeaponFighterGroup.Crossbows)) {
                 text.Add("Crossbows");
@@ -218,14 +212,11 @@ namespace WeaponFocusPlus {
             return text.ToArray();
         }
 
-        [HarmonyPatch(typeof(FeatureParam), "Equals")]
-        [HarmonyPatch(new Type[]
-        {
-            typeof(FeatureParam)
-        })]
+        [HarmonyPatch(typeof(FeatureParam), "Equals", new Type[] { typeof(FeatureParam) })]
         internal static class FeatureParam_Equals_Patch {
             // TODO: Fix multiple weapon groups applying to one weapon at the same time
             internal static void Postfix(FeatureParam __instance, FeatureParam other, ref bool __result) {
+                
                 if (Main.Enabled &&
                     !__result &&
                     object.Equals(__instance.Blueprint, (other != null) ? other.Blueprint : null)
@@ -274,119 +265,5 @@ namespace WeaponFocusPlus {
                 }
             }
         }
-        /*
-        [HarmonyPatch(typeof(FeatureUIData), "GetParamName")]
-        internal static class FeatureUIData_GetParamName_Patch {
-            [HarmonyPriority(0)]
-            internal static void Postfix(FeatureParam param, ref string __result) {
-                if (Main.Enabled) {
-                    if (param.WeaponCategory != null) {
-                        var preName = __result;
-                        var weaponGroups = GenerateWeaponTypeStrings(GetWeaponGroups(param.WeaponCategory.Value));
-                        var postName = (weaponGroups.Count() != 0) ? $"{weaponGroups.Aggregate((i, j) => i + "/" + j)} - {preName}" : preName;
-                        __result = postName;
-                    }
-                }
-            }
-        }
-        */
-        /*
-        [HarmonyPatch(typeof(ResourcesLibrary), "InitializeLibrary")]
-        static class ResourcesLibrary_InitializeLibrary_Patch {
-            static bool Initialized;
-            static bool Prefix() {
-                if (Initialized) {
-                    return false;
-                }
-                else {
-                    return true;
-                }
-            }
-            static void Postfix() {
-                if (Initialized) return;
-                Initialized = true;
-                patchFeats();
-            }
-            static void patchFeats() {
-
-                Dictionary<string, string> strings = LocalizationManager.CurrentPack.Strings;
-
-                var bundle = (AssetBundle)AccessTools.Field(typeof(ResourcesLibrary), "s_BlueprintsBundle")
-                .GetValue(null);
-                
-                var feats = bundle.LoadAllAssets<BlueprintFeature>();
-                List<BlueprintFeature> weaponFeats = new List<BlueprintFeature>();
-                foreach (var feat in feats) {
-                    try {
-                        if (feat.GetComponent<WeaponFocus>()) {
-                            weaponFeats.Add(feat);
-                        }
-                    }
-                    catch { }
-                }
-                foreach (var feat in weaponFeats) {
-                    var preName = feat.Name;
-                    var featName = preName.Split('(', ')')[0];
-                    var weaponName = preName.Split('(', ')')[1];
-                    //var weaponGroups = GetWeaponGroups(feat.GetComponent<WeaponFocus>().WeaponType.Category);
-                    try {
-                        var weaponGroups = GenerateWeaponTypeStrings(GetWeaponGroups(feat.GetComponent<WeaponFocus>().WeaponType.Category));
-                        var postName = (weaponGroups.Count() != 0) ? $"{featName}({weaponGroups.Aggregate((i, j) => i + "/" + j)}) - ({weaponName})" : preName;
-                        //var postName = $"{featName} ({weaponGroups}) - ({weaponName})";
-                        
-                        string b;
-                        if (strings.TryGetValue(feat.m_DisplayName.Key, out b)) {
-                            if (postName != b) {
-                                Main.Log($"b: {b}");
-                                strings[feat.m_DisplayName.Key] = postName;
-                                b = postName;
-                                Main.Log($"b: {b}");
-                                Main.Log($"value: {strings[feat.m_DisplayName.Key]}");
-                            }
-                        }
-                        
-                        Main.Log($"name: {feat.name}");
-                        Main.Log($"Name: {feat.Name}");
-                        //Main.Log($"Localization Manager: {LocalizationManager.CurrentPack.GetText(feat.m_DisplayName.Key)}");
-                        //Main.Log($"Localization Manager: {feat.m_DisplayName.LoadString(LocalizationManager.CurrentPack, LocalizationManager.CurrentLocale)}");
-                        LocalizedString newName = CreateString(feat.m_DisplayName.Key, postName);
-                        feat.m_DisplayName = newName;
-                        feat.name = postName;
-                        Main.Log($"name: {feat.name}");
-                        Main.Log($"Name: {feat.Name}");
-                        Main.Log($"{preName} -> {postName}");
-                        
-                    }
-                    catch {
-                        Main.Log($"BROKE: {feat.name }");
-                    }
-                }
-            }
-            */
-
-        public static LocalizedString CreateString(string key, string value) {
-            // See if we used the text previously.
-            // (It's common for many features to use the same localized text.
-            // In that case, we reuse the old entry instead of making a new one.)
-            LocalizedString localized;
-            /*if (textToLocalizedString.TryGetValue(value, out localized))
-            {
-                return localized;
-            }*/
-            var strings = LocalizationManager.CurrentPack.Strings;
-            String oldValue;
-            if (strings.TryGetValue(key, out oldValue) && value != oldValue) {
-            #if DEBUG   
-                Main.Log($"Info: duplicate localized string `{key}`, different text.");
-            #endif
-            }
-            strings[key] = value;
-            localized = new LocalizedString();
-            localized.m_Key = key;
-            //textToLocalizedString[value] = localized;
-            return localized;
-        }
-
-        //}
     }
 }
