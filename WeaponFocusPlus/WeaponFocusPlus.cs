@@ -11,7 +11,8 @@ using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-
+using System.Reflection;
+using Kingmaker.Blueprints.Items;
 
 namespace WeaponFocusPlus {
 
@@ -196,14 +197,28 @@ namespace WeaponFocusPlus {
             }
         }
 
-        [HarmonyPatch(typeof(UIUtilityItem), "GetHandUse")]
-        internal static class UIUtilityItem_GetHandUse_Patch {
-            [HarmonyPriority(0)]
+        [HarmonyPatch(typeof(UIUtilityItem), "GetHandUse", new Type[] { typeof(ItemEntity) })]
+        internal static class UIUtilityItem_GetHandUse_Patch1 {
             internal static void Postfix(ItemEntity item, ref string __result) {
                 if (Main.Enabled) {
-                    ItemEntityWeapon itemEntityWeapon = item as ItemEntityWeapon;
-                    if (itemEntityWeapon != null) {
+                    if (item is ItemEntityWeapon itemEntityWeapon) {
                         WeaponFighterGroup[] weaponGroups = GetWeaponGroups(itemEntityWeapon.Blueprint.Category);
+                        var text = GenerateWeaponTypeStrings(weaponGroups);
+                        if (text.Count() != 0) {
+                            var types = text.Aggregate((i, j) => i + "/" + j);
+                            __result = __result + " (" + types + ")";
+                        }
+                    }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(UIUtilityItem), "GetHandUse", new Type[] { typeof(BlueprintItem) })]
+        internal static class UIUtilityItem_GetHandUse_Patch2 {
+            internal static void Postfix(BlueprintItem blueprintItem, ref string __result) {
+                if (Main.Enabled) {
+                    if (blueprintItem is BlueprintItemWeapon itemEntityWeapon) {
+                        WeaponFighterGroup[] weaponGroups = GetWeaponGroups(itemEntityWeapon.Category);
                         var text = GenerateWeaponTypeStrings(weaponGroups);
                         if (text.Count() != 0) {
                             var types = text.Aggregate((i, j) => i + "/" + j);
@@ -221,7 +236,7 @@ namespace WeaponFocusPlus {
                 if (Main.Enabled) {
                     var preName = __result;
                     var weaponGroups = GenerateWeaponTypeStrings(GetWeaponGroups(stat));
-                    var postName = (weaponGroups.Count() != 0) ? $"{weaponGroups.Aggregate((i, j) => i + "/" + j)} - {preName}" : preName;
+                    var postName = (weaponGroups.Count() != 0) ? $"{weaponGroups.Aggregate((i, j) => i + "/" + j)} — {preName}" : preName;
                     __result = postName;
                 }
             }
