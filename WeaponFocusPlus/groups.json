@@ -74,9 +74,14 @@
   "Natural": [
     "Claw",
     "Bite",
+    "Hoof",
     "Gore",
     "OtherNaturalWeapons",
     "Tail",
+    "Talon",
+    "Tentacle",
+    "Slam",
+    "Sting",
     "UnarmedStrike"
   ],
   "Polearms": [
